@@ -1,5 +1,4 @@
 from collections import Counter
-from functools import reduce
 
 
 def readlines():
@@ -22,22 +21,21 @@ def step(fishes):
             yield Counter({(timer - 1): c})
 
 
-def solve_one():
+def simulate(n):
     fish = Counter(parse())
     print("Initial: ", fish)
-    for _ in range(80):
-        fish = reduce(lambda x, y: x + y, step(fish))
+    for _ in range(n):
+        fish = sum(step(fish), Counter({}))
     print("After: ", fish)
     return sum([c for _, c in fish.items()])
+
+
+def solve_one():
+    return simulate(80)
 
 
 def solve_two():
-    fish = Counter(parse())
-    print("Initial: ", fish)
-    for _ in range(256):
-        fish = reduce(lambda x, y: x + y, step(fish))
-    print("After: ", fish)
-    return sum([c for _, c in fish.items()])
+    return simulate(265)
 
 
 if __name__ == "__main__":
