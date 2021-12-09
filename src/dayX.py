@@ -1,3 +1,6 @@
+from pprint import pprint
+
+
 def readlines():
     with open("./input/dayX.txt") as f:
         for line in f.readlines():
@@ -13,5 +16,5 @@ def solve_two():
 
 
 if __name__ == "__main__":
-    print(solve_one())
-    print(solve_two())
+    pprint(solve_one())
+    pprint(solve_two())
