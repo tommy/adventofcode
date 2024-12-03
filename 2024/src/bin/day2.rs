@@ -2,11 +2,20 @@ use std::fs;
 
 fn main() {
     println!("A: {}", solve_a("inputs/day2.txt"));
+    println!("B: {}", solve_b("inputs/day2.txt"));
 }
 
 fn solve_a(filename: &str) -> usize {
     let reports = parse(filename);
     reports.iter().filter(|r| r.is_safe()).count()
+}
+
+fn solve_b(filename: &str) -> usize {
+    let reports = parse(filename);
+    reports
+        .iter()
+        .filter(|r| r.is_safe_with_dampening())
+        .count()
 }
 
 impl Report {
@@ -23,6 +32,20 @@ impl Report {
                     let diff = a.abs_diff(*b);
                     (1..=3).contains(&diff)
                 })
+    }
+
+    fn dampened(&self) -> Vec<Report> {
+        let mut dampened_reports = Vec::new();
+        for i in 0..self.levels.len() {
+            let mut levels = self.levels.clone();
+            levels.remove(i);
+            dampened_reports.push(Report { levels });
+        }
+        dampened_reports
+    }
+
+    fn is_safe_with_dampening(&self) -> bool {
+        self.is_safe() || self.dampened().iter().any(|r| r.is_safe())
     }
 }
 
