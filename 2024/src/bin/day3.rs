@@ -38,9 +38,7 @@ fn parse(filename: &str) -> Vec<(i32, i32)> {
                 // consumes the string if matches
                 if match_string(&mut chars, "mul(") {
                     state = State::Mul;
-                }
-                // otherwise skip the invalid character
-                else {
+                } else {
                     chars.next();
                 }
             }
@@ -51,11 +49,9 @@ fn parse(filename: &str) -> Vec<(i32, i32)> {
                         state = State::MulX(x);
                     } else {
                         state = State::Start;
-                        chars.next();
                     }
                 } else {
                     state = State::Start;
-                    chars.next();
                 }
             }
 
@@ -63,14 +59,9 @@ fn parse(filename: &str) -> Vec<(i32, i32)> {
                 if let Some(y) = match_number(&mut chars) {
                     if match_char(&mut chars, ')') {
                         exprs.push((x, y));
-                    } else {
-                        chars.next();
                     }
-                    state = State::Start;
-                } else {
-                    state = State::Start;
-                    chars.next();
                 }
+                state = State::Start;
             }
         }
     }
