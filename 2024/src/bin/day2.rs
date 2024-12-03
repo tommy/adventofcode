@@ -1,35 +1,51 @@
 use std::fs;
 
-use itertools::Itertools;
-
 fn main() {
     println!("A: {}", solve_a("inputs/day2.txt"));
 }
 
 fn solve_a(filename: &str) -> usize {
     let reports = parse(filename);
-    reports.iter().filter(|report| is_safe(report)).count()
+    reports.iter().filter(|r| r.is_safe()).count()
 }
 
-fn is_safe(report: &[i32]) -> bool {
-    let asc = report.is_sorted_by(|a, b| a < b);
-    let desc = report.is_sorted_by(|a, b| a > b);
+impl Report {
+    fn is_safe(&self) -> bool {
+        let asc = self.levels.is_sorted_by(|a, b| a < b);
+        let desc = self.levels.is_sorted_by(|a, b| a > b);
 
-    (asc || desc)
-        && report.iter().zip(report.iter().skip(1)).all(|(a, b)| {
-            let diff = a.abs_diff(*b);
-            (1..=3).contains(&diff)
-        })
+        (asc || desc)
+            && self
+                .levels
+                .iter()
+                .zip(self.levels.iter().skip(1))
+                .all(|(a, b)| {
+                    let diff = a.abs_diff(*b);
+                    (1..=3).contains(&diff)
+                })
+    }
 }
 
-fn parse(filename: &str) -> Vec<Vec<i32>> {
+struct Report {
+    levels: Vec<i32>,
+}
+
+impl FromIterator<i32> for Report {
+    fn from_iter<I: IntoIterator<Item = i32>>(iter: I) -> Self {
+        Report {
+            levels: iter.into_iter().collect(),
+        }
+    }
+}
+
+fn parse(filename: &str) -> Vec<Report> {
     let input = fs::read_to_string(filename).expect("Failed to read file");
     let mut reports = Vec::new();
     for line in input.lines() {
         reports.push(
             line.split(char::is_whitespace)
                 .map(|s| s.parse::<i32>().unwrap())
-                .collect_vec(),
+                .collect(),
         );
     }
 
