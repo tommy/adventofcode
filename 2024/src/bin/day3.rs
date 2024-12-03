@@ -2,22 +2,28 @@ use std::{fs, iter::Peekable};
 
 fn main() {
     println!("A: {}", solve_a("inputs/day3.txt"));
+    println!("B: {}", solve_b("inputs/day3.txt"));
 }
 
 fn solve_a(filename: &str) -> i32 {
-    let muls = parse(filename);
+    let muls = parse_a(filename);
     muls.into_iter().map(|(x, y)| x * y).sum()
 }
 
-#[derive(Debug)]
-enum State {
-    Start,
-    Mul,
-    MulX(i32),
-    End,
+fn solve_b(filename: &str) -> i32 {
+    let muls = parse_b(filename);
+    muls.into_iter().map(|(x, y)| x * y).sum()
 }
 
-fn parse(filename: &str) -> Vec<(i32, i32)> {
+fn parse_a(filename: &str) -> Vec<(i32, i32)> {
+    #[derive(Debug)]
+    enum State {
+        Start,
+        Mul,
+        MulX(i32),
+        End,
+    }
+
     let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
 
     let mut chars = contents.chars().peekable();
@@ -38,6 +44,77 @@ fn parse(filename: &str) -> Vec<(i32, i32)> {
                 // consumes the string if matches
                 if match_string(&mut chars, "mul(") {
                     state = State::Mul;
+                } else {
+                    chars.next();
+                }
+            }
+
+            State::Mul => {
+                if let Some(x) = match_number(&mut chars) {
+                    if match_char(&mut chars, ',') {
+                        state = State::MulX(x);
+                    } else {
+                        state = State::Start;
+                    }
+                } else {
+                    state = State::Start;
+                }
+            }
+
+            State::MulX(x) => {
+                if let Some(y) = match_number(&mut chars) {
+                    if match_char(&mut chars, ')') {
+                        exprs.push((x, y));
+                    }
+                }
+                state = State::Start;
+            }
+        }
+    }
+
+    exprs
+}
+
+fn parse_b(filename: &str) -> Vec<(i32, i32)> {
+    #[derive(Debug)]
+    enum State {
+        Start,
+        Dont,
+        Mul,
+        MulX(i32),
+        End,
+    }
+
+    let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
+
+    let mut chars = contents.chars().peekable();
+    let mut state = State::Start;
+    let mut exprs = Vec::new();
+
+    loop {
+        match state {
+            State::End => {
+                break;
+            }
+
+            _ if chars.peek().is_none() => {
+                state = State::End;
+            }
+
+            State::Start => {
+                // consumes the string if matches
+                if match_string(&mut chars, "mul(") {
+                    state = State::Mul;
+                } else if match_string(&mut chars, "don't()") {
+                    state = State::Dont;
+                } else {
+                    chars.next();
+                }
+            }
+
+            State::Dont => {
+                if match_string(&mut chars, "do()") {
+                    state = State::Start;
                 } else {
                     chars.next();
                 }
