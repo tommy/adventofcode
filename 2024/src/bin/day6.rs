@@ -4,7 +4,7 @@ use itertools::Itertools;
 
 fn main() {
     println!("A: {}", solve_a("inputs/day6.txt"));
-    println!("B: {}", solve_b("inputs/day6-sample.txt"));
+    println!("B: {}", solve_b("inputs/day6.txt"));
 }
 
 fn solve_a(filename: &str) -> usize {
@@ -24,7 +24,20 @@ fn solve_a(filename: &str) -> usize {
 
 fn solve_b(filename: &str) -> u32 {
     let puzzle = parse(filename);
-    0
+
+    let mut answer = 0;
+
+    for (r, c) in puzzle.where_guard_goes() {
+        if puzzle.grid[r][c] == Tile::Free {
+            let mut p = puzzle.clone();
+            p.grid[r][c] = Tile::Blocked;
+            if p.is_stuck() {
+                answer += 1;
+            }
+        }
+    }
+
+    answer
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -55,7 +68,7 @@ enum Tile {
 
 type Loc = (usize, usize);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Puzzle {
     grid: Vec<Vec<Tile>>,
     guard_loc: Loc,
@@ -101,6 +114,40 @@ impl Puzzle {
             Some((r as usize, c as usize))
         }
     }
+
+    fn where_guard_goes(&self) -> HashSet<Loc> {
+        let mut puzzle = self.clone();
+        let mut seen_states: HashSet<(Dir, Loc)> = HashSet::new();
+        let mut seen_locs: HashSet<Loc> = HashSet::new();
+        while !seen_states.contains(&puzzle.guard_state()) {
+            seen_locs.insert(puzzle.guard_loc);
+            seen_states.insert(puzzle.guard_state());
+            if puzzle.iterate().is_none() {
+                return seen_locs;
+            };
+        }
+
+        seen_locs
+    }
+
+    fn is_stuck(&self) -> bool {
+        let mut p = self.clone();
+
+        let mut seen_states: HashSet<(Dir, Loc)> = HashSet::new();
+        while !seen_states.contains(&p.guard_state()) {
+            // dbg!(&seen_states);
+            seen_states.insert(p.guard_state());
+            if p.iterate().is_none() {
+                return false;
+            } else {
+                // if seen_states.contains(&p.guard_state()) {
+                //     panic!("of");
+                // }
+            };
+        }
+
+        true
+    }
 }
 
 fn parse(filename: &str) -> Puzzle {
@@ -142,4 +189,9 @@ fn parse(filename: &str) -> Puzzle {
 #[test]
 fn sample_a() {
     assert_eq!(solve_a("inputs/day6-sample.txt"), 41);
+}
+
+#[test]
+fn sample_b() {
+    assert_eq!(solve_b("inputs/day6-sample.txt"), 6);
 }
